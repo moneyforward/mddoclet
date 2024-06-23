@@ -2,13 +2,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.dakusui</groupId>
-    <artifactId>doclet-exercise</artifactId>
+    <artifactId>mddoclet</artifactId>
     <packaging>jar</packaging>
     <version>1.0.0-SNAPSHOT</version>
     <description>A library to synthesize an object from interfaces dynamically
     </description>
 
-    <name>doclet-exercise</name>
+    <name>mddoclet</name>
     <url>http://dakusui.github.io/${project.name}</url>
 
     <scm>
@@ -54,14 +54,12 @@
         <thincrest-pcond.version>1.1.0</thincrest-pcond.version>
         <!-- END: test dependencies -->
         <!-- BEGIN: build dependencies -->
-        <asciidoclet.version>2.0.1-SNAPSHOT</asciidoclet.version>
+        <asciidoclet.version>2.0.0</asciidoclet.version>
         <asciidoctor.maven.plugin.version>2.0.0-RC.1</asciidoctor.maven.plugin.version>
         <asciidoctorj.version>2.5.11</asciidoctorj.version>
         <asciidoctorj.diagram.version>2.0.1</asciidoctorj.diagram.version>
         <jruby.version>9.2.12.0</jruby.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
-        <pitest-maven.version>1.15.3</pitest-maven.version>
-        <pitest-junit5-plugin.version>1.2.1</pitest-junit5-plugin.version>
         <exec-maven-plugin.version>3.2.0</exec-maven-plugin.version>
         <maven-clean-plugin.version>3.3.2</maven-clean-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
@@ -145,48 +143,6 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>${maven-javadoc-plugin.version}</version>
-                    <configuration>
-                        <overview>src/main/javadoc/overview.adoc</overview>
-                        <doclet>org.asciidoctor.asciidoclet.Asciidoclet</doclet>
-                        <docletArtifact>
-                            <groupId>org.asciidoctor</groupId>
-                            <artifactId>asciidoclet</artifactId>
-                            <version>${asciidoclet.version}</version>
-                            <classifier>shaded</classifier>
-                        </docletArtifact>
-                        <additionalJOptions>
-                            <additionalJOption>--add-exports=jdk.javadoc/jdk.javadoc.internal.api=asciidoclet</additionalJOption>
-                            <additionalJOption>--add-exports=jdk.javadoc/jdk.javadoc.internal.tool=asciidoclet</additionalJOption>
-                            <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.api=asciidoclet</additionalJOption>
-                            <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.parser=asciidoclet</additionalJOption>
-                            <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.tree=asciidoclet</additionalJOption>
-                            <additionalJOption>--add-exports=jdk.compiler/com.sun.tools.javac.model=asciidoclet</additionalJOption>
-                            <additionalJOption>--add-opens=jdk.compiler/com.sun.tools.javac.api=asciidoclet</additionalJOption>
-                            <additionalJOption>--add-opens=jdk.compiler/com.sun.tools.javac.parser=asciidoclet</additionalJOption>
-                            <additionalJOption>-J--add-opens=jdk.javadoc/jdk.javadoc.internal.api=ALL-UNNAMED</additionalJOption>
-                            <additionalJOption>-J--add-opens=jdk.javadoc/jdk.javadoc.internal.tool=ALL-UNNAMED</additionalJOption>
-                            <additionalJOption>-J--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</additionalJOption>
-                            <additionalJOption>-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</additionalJOption>
-                            <additionalJOption>-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</additionalJOption>
-                            <additionalJOption>-Xdoclint:all,-html,-accessibility</additionalJOption>
-                        </additionalJOptions>
-                        <additionalOptions>
-                            --base-dir ${project.basedir}
-                            --attribute "name=${project.name}"
-                            --attribute "version=${project.version}"
-                            --attribute "imagesoutdir=.asciidoctor/diagram"
-                            --attribute "imagesdir=.asciidoctor/diagram"
-                            --attribute "dot=/usr/bin/dot"
-                            --require asciidoctor-diagram
-                            --gem-path ${env.GEM_PATH}
-                            --attribute data-uri
-                        </additionalOptions>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
                     <version>${maven-site-plugin.version}</version>
                 </plugin>
@@ -202,9 +158,9 @@
                     <version>${maven-jar-plugin.version}</version>
                     <configuration>
                         <archive>
-                            <manifestFile>
-                                src/main/resources/META-INF/MANIFEST.MF
-                            </manifestFile>
+                            <manifestEntries>
+                                <Automatic-Module-Name>com.github.dakusui.mddoclet</Automatic-Module-Name>
+                            </manifestEntries>
                         </archive>
                     </configuration>
                 </plugin>
@@ -223,12 +179,6 @@
                     <artifactId>maven-release-plugin</artifactId>
                     <version>${maven-release-plugin.version}</version>
                 </plugin>
-                <plugin>
-                    <!-- Run with mvn org.pitest:pitest-maven:mutationCoverage -->
-                    <groupId>org.pitest</groupId>
-                    <artifactId>pitest-maven</artifactId>
-                    <version>${pitest-maven.version}</version>
-                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -238,6 +188,7 @@
                 <configuration>
                     <source>21</source>
                     <target>21</target>
+                    <release>21</release>
                     <compilerArgs>
                         <!--
                         <arg>-Xlint:all,-options,-path</arg>
@@ -251,9 +202,6 @@
                 <executions>
                     <execution>
                         <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -263,38 +211,6 @@
                 <!-- configuration>
                     <argLine>-ea</argLine>
                 </configuration -->
-            </plugin>
-            <plugin>
-                <!-- Run with mvn org.pitest:pitest-maven:mutationCoverage -->
-                <groupId>org.pitest</groupId>
-                <artifactId>pitest-maven</artifactId>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.pitest</groupId>
-                        <artifactId>pitest-junit5-plugin</artifactId>
-                        <version>${pitest-junit5-plugin.version}</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <phase>pre-site</phase>
-                        <goals>
-                            <goal>mutationCoverage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <jvmArgs>
-                        <jvmArg>-ea</jvmArg>
-                        <jvmArg>-Dunderpitest=yes</jvmArg>
-                    </jvmArgs>
-                    <targetClasses>
-                        <param>com.github.dakusui.java8.template.*</param>
-                    </targetClasses>
-                    <targetTests>
-                        <param>*Test</param>
-                    </targetTests>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -359,22 +275,7 @@
                             <executable>bash</executable>
                             <arguments>
                                 <argument>
-                                    ${basedir}/src/build_tools/package-info-adoc_to_package-info-java.sh
-                                </argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution><!-- Run our version calculation script -->
-                        <id>asciidoctor-diagram-installation</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>bash</executable>
-                            <arguments>
-                                <argument>
-                                    ${basedir}/src/build_tools/install-asciidoctor-diagram.sh
+                                    ${basedir}/src/build_tools/package-info-md_to_package-info-java.sh
                                 </argument>
                             </arguments>
                         </configuration>
@@ -399,10 +300,26 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <doclet>com.github.dakusui.mddoclet.MdDoclet</doclet>
+                    <docletArtifact>
+                        <groupId>com.github.dakusui</groupId>
+                        <artifactId>mddoclet</artifactId>
+                        <version>1.0.0-SNAPSHOT</version>
+                    </docletArtifact>
+                    <useStandardDocletOptions>false</useStandardDocletOptions>
+                    <additionalOptions>
+                        <additionalOption>-overview ${project.basedir}/src/main/javadoc/overview.md</additionalOption>
+                        <additionalOption>-d ${project.build.outputDirectory}/JavaMarkdown</additionalOption>
+                        <additionalOption>--source-path ${project.build.sourceDirectory}</additionalOption>
+                        <additionalOption>--class-path ${project.build.outputDirectory}</additionalOption>
+                    </additionalOptions>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>attach-javadocs-for-package</id>
-                        <phase>package</phase>
+                        <id>attach-javadocs</id>
+                        <phase>pre-site</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
@@ -529,28 +446,6 @@
                 </reportSets>
             </plugin>
 
-            <plugin>
-                <groupId>org.pitest</groupId>
-                <artifactId>pitest-maven</artifactId>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>report</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>javadoc</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>

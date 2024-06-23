@@ -12,16 +12,16 @@ function convert_package_info_adoc_to_package_info_java() {
   while IFS= read -r _i
   do
     echo " * ${_i}" >> ${_out}
-  done < "${_base_dir}/${_rel_dir}/package-info.adoc"
+  done < "${_base_dir}/${_rel_dir}/package-info.md"
 
   echo " */" >> ${_out}
   echo "package ${_rel_dir//\//.};" >> ${_out}
 }
 
-# find src/main/java -name 'package-info.adoc' -exec echo convert_package_info_adoc_to_package_info_java src/main/java
+# find src/main/java -name 'package-info.md' -exec echo convert_package_info_adoc_to_package_info_java src/main/java
 # convert_package_info_adoc_to_package_info_java /Users/hiroshi.ukai/Documents/scriptiveunit/src/main/java com/github/dakusui/scriptiveunit/utils
 
 base=src/main/java
-for i in $(find ${base} -name 'package-info.adoc'); do
+for i in $(find ${base} -name 'package-info.md'); do
   convert_package_info_adoc_to_package_info_java ${base} $(dirname ${i#${base}/})
 done;

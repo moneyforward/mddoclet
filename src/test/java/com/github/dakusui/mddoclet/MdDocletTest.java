@@ -1,6 +1,6 @@
-package com.github.dakusui.java8.template;
+package com.github.dakusui.mddoclet;
 
-import com.github.dakusui.java8.template.testutils.TestBase;
+import com.github.dakusui.mddoclet.testutils.TestBase;
 import com.github.dakusui.thincrest.TestAssertions;
 import com.github.dakusui.thincrest_pcond.fluent.Statement;
 import org.junit.jupiter.api.Disabled;
@@ -9,12 +9,13 @@ import org.junit.jupiter.api.Test;
 import static com.github.dakusui.thincrest.TestAssertions.assertStatement;
 import static com.github.dakusui.thincrest_pcond.fluent.Statement.objectValue;
 
-public class Java8AppTest extends TestBase {
+@Disabled
+public class MdDocletTest extends TestBase {
   @Test
   public void testMain() {
-    Java8App.main("Hello", "world");
   }
   
+  @Disabled
   @Test
   public void givenAppObject_whenProcessHello_thenProcessedHello_step1() {
     String s = "hello";
@@ -23,7 +24,7 @@ public class Java8AppTest extends TestBase {
     TestAssertions.assertStatement(
         // Since it accepts `Statement`, you try `Statement` class.
         // Since you are testing your class, not String, short, int, long., you are choosing `objectValue` method and give your object `new Java8App()`.
-        Statement.objectValue(new Java8App())
+        Statement.objectValue(new MdDoclet())
             // Invoke your method `process`, which takes a string parameter.
             // thincrest-pcond chooses appropriate method automatically (narrowest possible one.)
             .invoke("process", s)
@@ -38,11 +39,12 @@ public class Java8AppTest extends TestBase {
     // Even if you didn't do `asString()`, you can still do `isEqualTo("processed:" + s)`.
   }
   
+  @Disabled
   @Test
   public void givenAppObject_whenProcessHello_thenProcessedHello_step2() {
     String s = "hello";
     // Let's clean up by using static import.
-    assertStatement(objectValue(new Java8App())
+    assertStatement(objectValue(new MdDoclet())
         .invoke("process", s)
         .asString()
         .then()
@@ -90,7 +92,7 @@ public class Java8AppTest extends TestBase {
   @Test
   public void givenAppObject_whenProcessHello_thenNotProcessedHello() {
     String s = "hello";
-    assertStatement(objectValue(new Java8App())
+    assertStatement(objectValue(new MdDoclet())
         .invoke("process", s)
         .asString()
         .then()

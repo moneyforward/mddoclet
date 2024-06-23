@@ -1,4 +1,4 @@
-package com.github.dakusui.java8.template.testutils;
+package com.github.dakusui.mddoclet.testutils;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
