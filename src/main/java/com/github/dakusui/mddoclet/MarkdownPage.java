@@ -6,7 +6,6 @@ import com.sun.source.util.DocTrees;
 import jdk.javadoc.doclet.DocletEnvironment;
 
 import javax.lang.model.element.*;
-import javax.lang.model.util.Elements;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,36 +89,29 @@ public class MarkdownPage {
   public String renderAsTypePage() {
     StringBuilder sb = new StringBuilder().append(renderCommonPart());
     DocTrees docTrees = docletEnvironment.getDocTrees();
-    Elements utils = docletEnvironment.getElementUtils();
     this.children.stream()
-                 .filter(c -> c.getKind() == ElementKind.METHOD || c.getKind() == ElementKind.CONSTRUCTOR)
-                 .peek(c -> {
+                 .filter((Element element) -> element.getKind() == ElementKind.METHOD || element.getKind() == ElementKind.CONSTRUCTOR)
+                 .peek((Element element) -> {
+                   sb.append(String.format("<a id=\"#%s\"></a>%n", methodNameOf(element)));
                    sb.append("## **")
-                     .append(c.getKind())
+                     .append(element.getKind())
                      .append(":** ");
-                   if (c instanceof ExecutableElement executableElement) {
-                     if (c.getKind() != ElementKind.CONSTRUCTOR) {
+                   if (element instanceof ExecutableElement executableElement) {
+                     if (element.getKind() != ElementKind.CONSTRUCTOR) {
                        sb.append("`")
-                         .append(executableElement.getReturnType()
-                                                  .toString()
-                                                  .replaceAll("[a-z0-9_]+\\.", ""))
+                         .append(simpleReturnTypeOf(executableElement))
                          .append("`");
                      }
                    }
-                   if (c.getKind() == ElementKind.CONSTRUCTOR) {
-                     sb.append("&lt;&lt;init&gt;&gt;");
-                   } else {
-                     sb.append(c.getSimpleName());
-                   }
+                   String name;
+                   name = methodNameOf(element);
+                   sb.append(name);
                    sb.append("(");
-                   if (c instanceof ExecutableElement executableElement) {
+                   if (element instanceof ExecutableElement executableElement) {
                      sb.append(
                          executableElement.getParameters()
                                           .stream()
-                                          .map(p -> new String[]{p.asType()
-                                                                  .toString()
-                                              .replaceAll("[a-z0-9_]+\\.", ""),
-                                              p.getSimpleName().toString()})
+                                          .map(p -> new String[]{simpleTypeOf(p), nameOf(p)})
                                           .map(p -> String.format("`%s` `%s`", p[0], p[1]))
                                           .collect(joining(", ")));
                      sb.append(")")
@@ -146,8 +138,36 @@ public class MarkdownPage {
                       var tag = createTag(blockTagDocTre);
                       renderTag(sb, tag);
                     });
+                   sb.append(String.format("%n"));
                  });
     return sb.toString();
+  }
+  
+  private static String nameOf(VariableElement p) {
+    return p.getSimpleName()
+            .toString();
+  }
+  
+  private static String simpleTypeOf(VariableElement p) {
+    return p.asType()
+            .toString()
+            .replaceAll("[a-z0-9_]+\\.", "");
+  }
+  
+  private static String simpleReturnTypeOf(ExecutableElement executableElement) {
+    return executableElement.getReturnType()
+                            .toString()
+                            .replaceAll("[a-z0-9_]+\\.", "");
+  }
+  
+  private static String methodNameOf(Element c) {
+    String name;
+    if (c.getKind() == ElementKind.CONSTRUCTOR) {
+      name = "&lt;&lt;init&gt;&gt;";
+    } else {
+      name = Objects.toString(c.getSimpleName());
+    }
+    return name;
   }
   
   public String renderAsIndexPage() {
