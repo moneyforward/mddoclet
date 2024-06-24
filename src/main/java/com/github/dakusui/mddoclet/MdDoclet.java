@@ -10,10 +10,13 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
-import java.io.File;
+import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.github.dakusui.mddoclet.MdDocletOptions.createOption;
+import static javax.lang.model.element.Modifier.PROTECTED;
+import static javax.lang.model.element.Modifier.PUBLIC;
 
 /**
  * A Doclet, that produces "markdown" files, not HTML files.
@@ -117,7 +120,7 @@ public class MdDoclet implements Doclet {
     var utils = docEnv.getElementUtils();
     docEnv.getIncludedElements()
           .forEach(element -> {
-            if (element.getKind() == ElementKind.MODULE || element.getKind() == ElementKind.PACKAGE || element.getKind() == ElementKind.CLASS) {
+            if (element.getKind() == ElementKind.MODULE || element.getKind() == ElementKind.PACKAGE || element instanceof TypeElement) {
               /*
               reportElement(element, "- element", utils, docEnv);
               element.getEnclosedElements()
@@ -125,19 +128,28 @@ public class MdDoclet implements Doclet {
                      
                */
               DocTrees docTrees = docEnv.getDocTrees();
-              MarkdownPage markdownPage = new MarkdownPage(docEnv).title(element.getKind(),
-                                                                         fullyQualifiedNameOf(element));
+              MarkdownPage markdownPage = new MarkdownPage(element instanceof TypeElement
+                                                           ? MarkdownPage.PageStyle.TYPE
+                                                           : MarkdownPage.PageStyle.INDEX, docEnv).title(
+                  element.getKind(),
+                  fullyQualifiedNameOf(element));
               
+              if (element instanceof ModuleElement) {
+                reedOverview().ifPresent(markdownPage::overview);
+              }
               DocCommentTree docCommentTree = docTrees.getDocCommentTree(element);
               if (docCommentTree != null) {
                 markdownPage = markdownPage.commentTree(docCommentTree);
               }
               MarkdownPage finalMarkdownPage = markdownPage;
               element.getEnclosedElements()
+                     .stream()
+                     .filter(e -> e.getModifiers()
+                                   .contains(PUBLIC) || e.getModifiers()
+                                                         .contains(PROTECTED) || e instanceof PackageElement)
                      .forEach(finalMarkdownPage::addChild);
               
-              report("FILE: " + this.destinationDirectory + "/test.md");
-              Arrays.stream(markdownPage.renderAsTypePage()
+              Arrays.stream(markdownPage.renderAsIndexPage()
                                         .split(String.format("%n")))
                     .forEach(this::report);
               
@@ -149,7 +161,7 @@ public class MdDoclet implements Doclet {
                 if (packageDir.mkdirs()) {
                   report("PACKAGE DIR: " + packageDir + " was created.");
                 }
-                markdownPage.writeTo(new File(packageDir, element.getSimpleName() + ".md"));
+                markdownPage.writeTo(determineOutputFileFor((TypeElement) element, packageDir));
               } else if (element instanceof PackageElement) {
                 var packageName = packageNameOf(element, utils);
                 var packageDir = new File(moduleDir, packageName);
@@ -169,6 +181,44 @@ public class MdDoclet implements Doclet {
     return true;
   }
   
+  private Optional<String> reedOverview() {
+    return Optional.ofNullable(this.overviewFile)
+                   .map(MdDoclet::readStringFromFile);
+  }
+  
+  private static String  readStringFromFile(File f) {
+    StringBuilder sb = new StringBuilder();
+    try (var reader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        sb.append(line);
+        sb.append(System.lineSeparator());
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return sb.toString();
+  }
+  
+  private static File determineOutputFileFor(TypeElement element, File packageDir) {
+    String typeName = typeNameOf(element);
+    return new File(packageDir, typeName + ".md");
+  }
+  
+  public static String typeNameOf(TypeElement element) {
+    List<TypeElement> enclosingClasses = new ArrayList<>();
+    enclosingClasses.add(element);
+    Element enclosingElement;
+    Element cur = element;
+    while ((enclosingElement = cur.getEnclosingElement()) instanceof TypeElement) {
+      enclosingClasses.addFirst((TypeElement) enclosingElement);
+      cur = enclosingElement;
+    }
+    return enclosingClasses.stream()
+                           .map(Element::getSimpleName)
+                           .collect(Collectors.joining("."));
+  }
+  
   private static String fullyQualifiedNameOf(Element element) {
     if (element instanceof TypeElement typeElement) {
       return typeElement.getQualifiedName()
@@ -183,38 +233,7 @@ public class MdDoclet implements Doclet {
     return element.toString();
   }
   
-  private void reportElement(Element element, String heading, Elements utils, DocletEnvironment docletEnvironment) {
-    var comment = utils.getDocComment(element);
-    if (comment != null) {
-      Arrays.stream(comment.split("\n"))
-            .forEach(c -> this.report(heading + ":<" +
-                                          element.getKind() + ":" +
-                                          docletEnvironment.getDocTrees() + ":" +
-                                          packageNameOf(element, utils) + ":" +
-                                          c + ">"));
-    } else {
-      this.report(heading + ":<" + element.getKind() + ":" + packageNameOf(element, utils) + ">");
-    }
-    var commentTree = docletEnvironment.getDocTrees()
-                                       .getDocCommentTree(element);
-    if (commentTree != null) {
-      //this.report(Objects.toString(commentTree.getBlockTags()));
-      this.report("first:    <" + commentTree.getFirstSentence() + ">");
-      this.report("body:     <" + commentTree.getBody() + ">");
-      this.report("fullBody: <" + commentTree.getFullBody() + ">");
-      this.report("postamble:<" + commentTree.getPostamble() + ">");
-      this.report("preamble: <" + commentTree.getPreamble() + ">");
-      this.report("blocktags:<" + Optional.ofNullable(commentTree.getBlockTags())
-                                          .map(s -> s.stream()
-                                                     .map(t -> String.format("<%s:%s>", t.getKind(), t))
-                                                     .toList()
-                                                     .toString())
-                                          .orElse("(empty)") + ">");
-    }
-  }
-  
-  
-  private static String packageNameOf(Element element, Elements utils) {
+  static String packageNameOf(Element element, Elements utils) {
     return Optional.ofNullable(utils.getPackageOf(element))
                    .map((PackageElement v) -> Objects.toString(v.getQualifiedName()))
                    .orElse("(none)");

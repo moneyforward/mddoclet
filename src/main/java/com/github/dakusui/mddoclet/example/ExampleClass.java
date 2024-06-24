@@ -5,8 +5,8 @@ package com.github.dakusui.mddoclet.example;
  * How are you?
  * I am implementing {@link ExampleInterface}.
  *
- * @link <a href="http://www.example.com">...</a>
  * @see ExampleInterface
+ * @link <a href="http://www.example.com">...</a>
  */
 public class ExampleClass implements ExampleInterface {
   /**
@@ -59,5 +59,19 @@ public class ExampleClass implements ExampleInterface {
   @Override
   public String toString() {
     return "ExampleClass(" + this.exampleField1 + ", " + this.exampleField2 + ")";
+  }
+  
+  /**
+   * This is an example of inner class.
+   */
+  public static class InnerExampleClass {
+    /**
+     * An example method that prints a message.
+     *
+     * @param message A message to be printed.
+     */
+    public static void exampleMethod(String message) {
+      System.out.println(message);
+    }
   }
 }

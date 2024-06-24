@@ -4,6 +4,9 @@ package com.github.dakusui.mddoclet.example;
  * An entry point class of this example.
  */
 public class ExampleMain implements ExampleInterface {
+  private ExampleMain() {
+  }
+  
   /**
    * An entry point method.
    * @param args Arguments
