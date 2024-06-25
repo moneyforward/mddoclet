@@ -315,6 +315,7 @@
                         <additionalOption>--source-path ${project.build.sourceDirectory}</additionalOption>
                         <additionalOption>--class-path ${project.build.outputDirectory}</additionalOption>
                     </additionalOptions>
+                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -403,6 +404,8 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <!-- skip site generation by default for now -->
+                    <skip>true</skip>
                     <!-- disable generateReports if you don't want to include the built-in reports -->
                     <generateReports>true</generateReports>
                     <generateSitemap>true</generateSitemap>
@@ -488,6 +491,20 @@
                     <name>Linux</name>
                 </os>
             </activation>
+        </profile>
+        <profile>
+            <id>generate-javadocs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <skip>false</skip> <!-- Enable Javadoc generation -->
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>release-sign-artifacts</id>

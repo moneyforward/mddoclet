@@ -90,40 +90,24 @@ public class MarkdownPage {
     StringBuilder sb = new StringBuilder().append(renderCommonPart());
     DocTrees docTrees = docletEnvironment.getDocTrees();
     this.children.stream()
-                 .filter((Element element) -> element.getKind() == ElementKind.METHOD || element.getKind() == ElementKind.CONSTRUCTOR)
-                 .peek((Element element) -> {
-                   sb.append(String.format("<a id=\"#%s\"></a>%n", methodNameOf(element)));
-                   sb.append("## **")
-                     .append(element.getKind())
-                     .append(":** ");
-                   if (element instanceof ExecutableElement executableElement) {
-                     if (element.getKind() != ElementKind.CONSTRUCTOR) {
-                       sb.append("`")
-                         .append(simpleReturnTypeOf(executableElement))
-                         .append("`");
-                     }
-                   }
-                   String name;
-                   name = methodNameOf(element);
-                   sb.append(name);
-                   sb.append("(");
-                   if (element instanceof ExecutableElement executableElement) {
-                     sb.append(
-                         executableElement.getParameters()
-                                          .stream()
-                                          .map(p -> new String[]{simpleTypeOf(p), nameOf(p)})
-                                          .map(p -> String.format("`%s` `%s`", p[0], p[1]))
-                                          .collect(joining(", ")));
-                     sb.append(")")
-                       .append(String.format("%n"));
-                   }
+                 .filter((Element element) -> element instanceof ExecutableElement)
+                 .map(element -> (ExecutableElement) element)
+                 .peek((ExecutableElement element) -> {
+                   sb.append(String.format("<a id=\"%s\"></a>%n", methodNameOf(element)));
+                   sb.append(String.format("## **%s:** `%s` %s(%s)%n",
+                                           element.getKind(),
+                                           returnTypeOf(element),
+                                           methodNameOf(element),
+                                           element.getParameters()
+                                                  .stream()
+                                                  .map(p -> new String[]{simpleTypeOf(p), nameOf(p)})
+                                                  .map(p -> String.format("`%s` `%s`", p[0], p[1]))
+                                                  .collect(joining(", "))));
                  })
                  .map(docTrees::getDocCommentTree)
                  .peek(tree -> {
                    if (tree == null) {
-                     sb.append(String.format("%n"));
-                     sb.append("t.b.d.");
-                     sb.append(String.format("%n"));
+                     sb.append(String.format("%nt.b.d.%n"));
                    }
                  })
                  .filter(Objects::nonNull)
@@ -141,6 +125,16 @@ public class MarkdownPage {
                    sb.append(String.format("%n"));
                  });
     return sb.toString();
+  }
+  
+  private static String returnTypeOf(ExecutableElement element) {
+    String returnType;
+    if (element.getKind() != ElementKind.CONSTRUCTOR) {
+      returnType = String.format("%s", simpleReturnTypeOf(element));
+    } else {
+      returnType = "(none)";
+    }
+    return returnType;
   }
   
   private static String nameOf(VariableElement p) {
@@ -176,28 +170,19 @@ public class MarkdownPage {
     
     sb.append(String.format("# Enclosed Elements%n"));
     for (Element element : children) {
-      sb.append("- **");
-      sb.append(element.getKind());
-      sb.append(":** ");
       if (element instanceof TypeElement typeElement) {
-        sb.append("[");
-        sb.append(typeNameOf(typeElement));
-        sb.append("](");
-        sb.append(String.format("%s.md", typeNameOf(typeElement)));
-        sb.append(")");
+        sb.append(String.format("- **%s:** [%s](%s.md)%n",
+                                element.getKind(),
+                                typeNameOf(typeElement),
+                                typeNameOf(typeElement)));
       } else if (element instanceof PackageElement) {
-        sb.append("[");
-        sb.append(packageNameOf(element, docletEnvironment.getElementUtils()));
-        sb.append("](");
-        sb.append(String.format("%s/index.md", packageNameOf(element, docletEnvironment.getElementUtils())));
-        sb.append(")");
+        sb.append(String.format("- **%s:** [%s](%s/index.md)%n",
+                                element.getKind(),
+                                packageNameOf(element, docletEnvironment.getElementUtils()),
+                                packageNameOf(element, docletEnvironment.getElementUtils())));
       } else {
-        sb.append("Unsupported type of element: **");
-        sb.append(element.getKind());
-        sb.append(":** ");
-        sb.append(element.getSimpleName());
+        System.err.println("Ignoring unknown element: " + element);
       }
-      sb.append(String.format("%n"));
     }
     sb.append(String.format("%n"));
     
@@ -205,28 +190,17 @@ public class MarkdownPage {
   }
   
   private static void renderTag(StringBuilder sb, Tag tag) {
-    sb.append("+ **");
-    sb.append(tag.tagType());
-    sb.append(":** ");
-    sb.append(tag.tagValue());
-    sb.append(String.format("%n"));
+    sb.append(String.format("+ **%s:** %s%n", tag.tagType(), tag.tagValue()));
   }
   
   
   private String renderCommonPart() {
     StringBuilder sb = new StringBuilder();
-    sb.append("# ")
-      .append(title)
-      .append("\n")
-      .append("\n");
+    sb.append(String.format("# %s%n%n", title));
     if (this.overview != null)
-      sb.append(overview)
-        .append("\n")
-        .append("\n");
+      sb.append(String.format("%s%n%n", overview));
     if (this.body != null)
-      sb.append(this.body)
-        .append("\n")
-        .append("\n");
+      sb.append(String.format("%s%n%n", this.body));
     
     sb.append(renderTags(this.tags));
     return sb.toString();
