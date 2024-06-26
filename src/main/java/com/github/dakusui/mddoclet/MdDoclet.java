@@ -168,12 +168,12 @@ public class MdDoclet implements Doclet {
                 if (packageDir.mkdirs()) {
                   report("PACKAGE DIR: " + packageDir + " was created.");
                 }
-                markdownPage.writeTo(new File(packageDir, "index.md"));
+                markdownPage.writeTo(new File(packageDir, "README.md"));
               } else if (element instanceof ModuleElement) {
                 if (moduleDir.mkdirs()) {
                   report("MODULE DIR: " + moduleDir + " was created.");
                 }
-                markdownPage.writeTo(new File(moduleDir, "index.md"));
+                markdownPage.writeTo(new File(moduleDir, "README.md"));
               }
             }
           });
