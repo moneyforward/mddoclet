@@ -7,10 +7,7 @@ import jdk.javadoc.doclet.DocletEnvironment;
 
 import javax.lang.model.element.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.github.dakusui.mddoclet.MdDoclet.packageNameOf;
 import static com.github.dakusui.mddoclet.MdDoclet.typeNameOf;
@@ -83,31 +80,31 @@ public class MarkdownPage {
     int i = s.indexOf(" ");
     return i >= 0
            ? s.substring(i)
-           : "(blockTagDocTree.b.d.)";
+           : "(t.b.d.)";
   }
   
   public String renderAsTypePage() {
     StringBuilder sb = new StringBuilder().append(renderCommonPart());
     DocTrees docTrees = docletEnvironment.getDocTrees();
     this.children.stream()
-                 .filter((Element element) -> element instanceof ExecutableElement)
-                 .map(element -> (ExecutableElement) element)
-                 .peek((ExecutableElement element) -> {
-                   sb.append(String.format("<a id=\"%s\"></a>%n", methodNameOf(element)));
-                   sb.append(String.format("## **%s:** `%s` %s(%s)%n",
-                                           element.getKind(),
-                                           returnTypeOf(element),
-                                           methodNameOf(element),
-                                           element.getParameters()
-                                                  .stream()
-                                                  .map(p -> new String[]{simpleTypeOf(p), nameOf(p)})
-                                                  .map(p -> String.format("`%s` `%s`", p[0], p[1]))
-                                                  .collect(joining(", "))));
+                 .sorted(Comparator.comparing(Element::getKind)
+                                   .thenComparing(o -> o.getSimpleName()
+                                                        .toString()))
+                 .filter(e -> Set.of(ElementKind.METHOD, ElementKind.CONSTRUCTOR, ElementKind.FIELD)
+                                 .contains(e.getKind()))
+                 .peek((Element element) -> {
+                   if (element instanceof ExecutableElement executableElement) {
+                     sb.append(renderAnchorForExecutableElement(executableElement));
+                     sb.append(renderSectionTitleForExecutableElement(executableElement));
+                   } else if (element instanceof VariableElement variableElement) {
+                     sb.append(renderAnchorForVariableElement(variableElement));
+                     sb.append(renderSectionTitleForVariableElement(element, variableElement));
+                   }
                  })
                  .map(docTrees::getDocCommentTree)
                  .peek(tree -> {
                    if (tree == null) {
-                     sb.append(String.format("%nt.b.d.%n"));
+                     sb.append(String.format("%nt.b.d.%n%n"));
                    }
                  })
                  .filter(Objects::nonNull)
@@ -116,15 +113,38 @@ public class MarkdownPage {
                    t.getFullBody()
                     .forEach((DocTree c) -> sb.append(c));
                    sb.append(String.format("%n"));
+                   sb.append(String.format("%n"));
                    
                    t.getBlockTags()
-                    .forEach((DocTree blockTagDocTre) -> {
-                      var tag = createTag(blockTagDocTre);
-                      renderTag(sb, tag);
-                    });
+                    .forEach((DocTree blockTagDocTree) -> renderTag(sb, createTag(blockTagDocTree)));
                    sb.append(String.format("%n"));
                  });
     return sb.toString();
+  }
+  
+  private static String renderAnchorForVariableElement(VariableElement variableElement) {
+    return String.format("<a id=\"%s\"></a>%n", variableElement.getSimpleName());
+  }
+  
+  private static String renderSectionTitleForVariableElement(Element element, VariableElement variableElement) {
+    return String.format("## **%s:** %s%n", variableElement.getKind(), element.getSimpleName()
+                                                                              .toString());
+  }
+  
+  private static String renderAnchorForExecutableElement(ExecutableElement element) {
+    return String.format("<a id=\"%s\"></a>%n", methodNameOf(element));
+  }
+  
+  private static String renderSectionTitleForExecutableElement(ExecutableElement element) {
+    return String.format("## **%s:** `%s` %s(%s)%n",
+                         element.getKind(),
+                         returnTypeOf(element),
+                         methodNameOf(element),
+                         element.getParameters()
+                                .stream()
+                                .map(p -> new String[]{simpleTypeOf(p), nameOf(p)})
+                                .map(p -> String.format("`%s` `%s`", p[0], p[1]))
+                                .collect(joining(", ")));
   }
   
   private static String returnTypeOf(ExecutableElement element) {
@@ -201,14 +221,15 @@ public class MarkdownPage {
       sb.append(String.format("%s%n%n", overview));
     if (this.body != null)
       sb.append(String.format("%s%n%n", this.body));
-    
+    sb.append(String.format("%n"));
     sb.append(renderTags(this.tags));
+    sb.append(String.format("%n"));
     return sb.toString();
   }
   
-  private static String renderTags(List<? extends DocTree> tags1) {
+  private static String renderTags(List<? extends DocTree> tags) {
     StringBuilder sb = new StringBuilder();
-    for (Tag tag : tags1.stream()
+    for (Tag tag : tags.stream()
                         .map(MarkdownPage::createTag)
                         .toList()) {
       renderTag(sb, tag);
