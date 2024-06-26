@@ -65,44 +65,31 @@ public class MdDoclet implements Doclet {
    */
   @Override
   public Set<? extends Option> getSupportedOptions() {
-    return Set.of(
-        createOption("-d",
-                     "<directory>",
-                     "Destination directory for output",
-                     args -> {
-                       destinationDirectory = new File(args.getFirst());
-                       if (!destinationDirectory.exists()) {
-                         if (!destinationDirectory.mkdirs()) {
-                           report("Failed to create destination directory: " + destinationDirectory);
-                           return false;
-                         }
-                       }
-                       if (destinationDirectory.exists() && !destinationDirectory.isDirectory()) {
-                         report("Specified destination " + destinationDirectory +
-                                    " is not a directory: " + destinationDirectory);
-                         return false;
-                       }
-                       return true;
-                     }),
-        createOption("-overview",
-                     "<file>",
-                     "Read overview documentation from markdown file",
-                     args -> {
-                       overviewFile = new File(args.getFirst());
-                       if (!(overviewFile.exists() && overviewFile.isFile() && overviewFile.canRead())) {
-                         report("Overview file does not exist or is not readable: " + overviewFile);
-                         return false;
-                       }
-                       return true;
-                     }),
-        createOption("-base-path",
-                     "<pathFromSiteUrlToDocRoot>",
-                     "Path from site URL to the document root",
-                     args -> {
-                       report("Relative path from the site URL to the document root is set to " + args.getFirst());
-                       MdDoclet.this.basePath = args.getFirst();
-                       return true;
-                     }));
+    return Set.of(createOption("-d", "<directory>", "Destination directory for output", args -> {
+      destinationDirectory = new File(args.getFirst());
+      if (!destinationDirectory.exists()) {
+        if (!destinationDirectory.mkdirs()) {
+          report("Failed to create destination directory: " + destinationDirectory);
+          return false;
+        }
+      }
+      if (destinationDirectory.exists() && !destinationDirectory.isDirectory()) {
+        report("Specified destination " + destinationDirectory + " is not a directory: " + destinationDirectory);
+        return false;
+      }
+      return true;
+    }), createOption("-overview", "<file>", "Read overview documentation from markdown file", args -> {
+      overviewFile = new File(args.getFirst());
+      if (!(overviewFile.exists() && overviewFile.isFile() && overviewFile.canRead())) {
+        report("Overview file does not exist or is not readable: " + overviewFile);
+        return false;
+      }
+      return true;
+    }), createOption("-base-path", "<pathFromSiteUrlToDocRoot>", "Path from site URL to the document root", args -> {
+      report("Relative path from the site URL to the document root is set to " + args.getFirst());
+      MdDoclet.this.basePath = (args.getFirst() + "/").replaceAll("/+", "/");
+      return true;
+    }));
   }
   
   /**
@@ -127,19 +114,14 @@ public class MdDoclet implements Doclet {
   public boolean run(DocletEnvironment docEnv) {
     this.report("Hello, I'm a Markdown Doclet!");
     var utils = docEnv.getElementUtils();
+    var typeDictionary = scanElementsToBuildTypeDictionary(docEnv.getIncludedElements(), utils);
     docEnv.getIncludedElements()
           .forEach(element -> {
             if (element.getKind() == ElementKind.MODULE || element.getKind() == ElementKind.PACKAGE || element instanceof TypeElement) {
-              /*
-              reportElement(element, "- element", utils, docEnv);
-              element.getEnclosedElements()
-                     .forEach(each -> reportElement(each, "  - child", utils, docEnv));
-                     
-               */
               DocTrees docTrees = docEnv.getDocTrees();
-              MarkdownPage markdownPage = new MarkdownPage(element instanceof TypeElement
-                                                           ? MarkdownPage.PageStyle.TYPE
-                                                           : MarkdownPage.PageStyle.INDEX, docEnv).title(
+              MarkdownPage markdownPage = new MarkdownPage(pageStyleFor(element),
+                                                           docEnv,
+                                                           t -> resolveDocumentPathForType(t, typeDictionary)).title(
                   element.getKind(),
                   fullyQualifiedNameOf(element));
               
@@ -190,6 +172,37 @@ public class MdDoclet implements Doclet {
     return true;
   }
   
+  private static MarkdownPage.PageStyle pageStyleFor(Element element) {
+    return element instanceof TypeElement
+           ? MarkdownPage.PageStyle.TYPE
+           : MarkdownPage.PageStyle.INDEX;
+  }
+  
+  private String resolveDocumentPathForType(String t, Map<String, String> typeDictionary) {
+    var poundSignPosition = t.indexOf("#");
+    var typeName = t.substring(0, poundSignPosition < 0
+                                  ? t.length()
+                                  : poundSignPosition);
+    return typeDictionary.containsKey(typeName)
+           ? String.format("%s%s", this.basePath,
+                           typeDictionary.get(typeName))
+           : "unknownType.md";
+  }
+  
+  private static Map<String, String> scanElementsToBuildTypeDictionary(Set<? extends Element> includedElements, Elements utils) {
+    return includedElements.stream()
+                           .filter(element -> element instanceof TypeElement)
+                           .map(element -> (TypeElement) element)
+                           .collect(Collectors.toMap(e -> e.getSimpleName()
+                                                           .toString(),
+                                                     typeElement -> docLocationFromBasePath(typeElement, utils)));
+  }
+  
+  private static String docLocationFromBasePath(TypeElement typeElement, Elements utils) {
+    return String.format("%s/%s/%s.md", moduleNameOf(typeElement, utils), packageNameOf(typeElement, utils),
+                         typeNameOf(typeElement));
+  }
+  
   private Optional<String> reedOverview() {
     return Optional.ofNullable(this.overviewFile)
                    .map(MdDoclet::readStringFromFile);
@@ -232,12 +245,12 @@ public class MdDoclet implements Doclet {
     if (element instanceof TypeElement typeElement) {
       return typeElement.getQualifiedName()
                         .toString();
-    } else if (element instanceof PackageElement) {
-      return ((PackageElement) element).getQualifiedName()
-                                       .toString();
+    } else if (element instanceof PackageElement packageElement) {
+      return packageElement.getQualifiedName()
+                           .toString();
     } else if (element instanceof ModuleElement moduleElement) {
-      return ((ModuleElement) element).getQualifiedName()
-                                      .toString();
+      return moduleElement.getQualifiedName()
+                          .toString();
     }
     return element.toString();
   }

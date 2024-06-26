@@ -314,7 +314,7 @@
                         <additionalOption>-d ${project.build.outputDirectory}/JavaMarkdown</additionalOption>
                         <additionalOption>--source-path ${project.build.sourceDirectory}</additionalOption>
                         <additionalOption>--class-path ${project.build.outputDirectory}</additionalOption>
-                        <additionalOption>-base-path JavaMarkdown</additionalOption>
+                        <additionalOption>-base-path ${project.build.outputDirectory}/JavaMarkdown</additionalOption>
                     </additionalOptions>
                     <skip>true</skip>
                 </configuration>
