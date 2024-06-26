@@ -50,5 +50,3 @@
 
 
 ```
-
-## Generated `package-info.md`
