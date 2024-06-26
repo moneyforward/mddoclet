@@ -201,8 +201,9 @@ public class MarkdownPage {
       sb.append(String.format("%s%n%n", overview));
     if (this.body != null)
       sb.append(String.format("%s%n%n", this.body));
-    
+    sb.append(String.format("%n"));
     sb.append(renderTags(this.tags));
+    sb.append(String.format("%n"));
     return sb.toString();
   }
   
