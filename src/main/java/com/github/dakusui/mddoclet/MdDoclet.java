@@ -12,6 +12,7 @@ import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import java.io.*;
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 import static com.github.dakusui.mddoclet.MdDocletOptions.createOption;
@@ -27,6 +28,7 @@ public class MdDoclet implements Doclet {
   private File overviewFile = null;
   private File destinationDirectory = new File(".");
   private String basePath = "/";
+  private BiPredicate<ModuleElement, PackageElement> packageFilter = (moduleElement, packageElement) -> true;
   
   /**
    * Creates an instance of this class.
@@ -65,31 +67,73 @@ public class MdDoclet implements Doclet {
    */
   @Override
   public Set<? extends Option> getSupportedOptions() {
-    return Set.of(createOption("-d", "<directory>", "Destination directory for output", args -> {
-      destinationDirectory = new File(args.getFirst());
-      if (!destinationDirectory.exists()) {
-        if (!destinationDirectory.mkdirs()) {
-          report("Failed to create destination directory: " + destinationDirectory);
-          return false;
-        }
-      }
-      if (destinationDirectory.exists() && !destinationDirectory.isDirectory()) {
-        report("Specified destination " + destinationDirectory + " is not a directory: " + destinationDirectory);
-        return false;
-      }
-      return true;
-    }), createOption("-overview", "<file>", "Read overview documentation from markdown file", args -> {
-      overviewFile = new File(args.getFirst());
-      if (!(overviewFile.exists() && overviewFile.isFile() && overviewFile.canRead())) {
-        report("Overview file does not exist or is not readable: " + overviewFile);
-        return false;
-      }
-      return true;
-    }), createOption("-base-path", "<pathFromSiteUrlToDocRoot>", "Path from site URL to the document root", args -> {
-      report("Relative path from the site URL to the document root is set to " + args.getFirst());
-      MdDoclet.this.basePath = (args.getFirst() + "/").replaceAll("/+", "/");
-      return true;
-    }));
+    return Set.of(createOption("-d",
+                               "<directory>",
+                               "Destination directory for output",
+                               args -> {
+                                 destinationDirectory = new File(args.getFirst());
+                                 if (!destinationDirectory.exists()) {
+                                   if (!destinationDirectory.mkdirs()) {
+                                     report("Failed to create destination directory: " + destinationDirectory);
+                                     return false;
+                                   }
+                                 }
+                                 if (destinationDirectory.exists() && !destinationDirectory.isDirectory()) {
+                                   report(
+                                       "Specified destination " + destinationDirectory + " is not a directory: " + destinationDirectory);
+                                   return false;
+                                 }
+                                 return true;
+                               }),
+                  createOption("-overview",
+                               "<file>",
+                               "Read overview documentation from markdown file",
+                               args -> {
+                                 overviewFile = new File(args.getFirst());
+                                 if (!(overviewFile.exists() && overviewFile.isFile() && overviewFile.canRead())) {
+                                   report("Overview file does not exist or is not readable: " + overviewFile);
+                                   return false;
+                                 }
+                                 return true;
+                               }),
+                  createOption("-base-path",
+                               "<pathFromSiteUrlToDocRoot>",
+                               "Path from site URL to the document root",
+                               args -> {
+                                 report(
+                                     "Relative path from the site URL to the document root is set to " + args.getFirst());
+                                 MdDoclet.this.basePath = (args.getFirst() + "/").replaceAll("/+",
+                                                                                             "/");
+                                 return true;
+                               }),
+                  createOption("-target-packages",
+                               "<moduleNameRegex#packageNameRegex>",
+                               "Packages to generate JavaDocs; Only packages whose enclosing module name and their own names match given regex are processed by this Doclet",
+                               args -> {
+                                 MdDoclet.this.packageFilter = (moduleElement, packageElement) -> {
+                                   var hasPoundSign = args.getFirst()
+                                                          .contains("#");
+                                   var poundSignIndex = args.getFirst()
+                                                            .indexOf("#");
+                                   String patternForModule = hasPoundSign
+                                                             ? args.getFirst()
+                                                                   .substring(0, poundSignIndex)
+                                                             : ".*";
+                                   String patternForPackage = hasPoundSign
+                                                              ? args.getFirst()
+                                                                    .substring(poundSignIndex + 1)
+                                                              : args.getFirst();
+                                   moduleElement.getQualifiedName();
+                                   return moduleElement.getQualifiedName()
+                                                       .toString()
+                                                       .matches(patternForModule)
+                                       && packageElement.getQualifiedName()
+                                                        .toString()
+                                                        .matches(patternForPackage);
+                                 };
+                                 return true;
+                               }
+                              ));
   }
   
   /**
@@ -119,7 +163,7 @@ public class MdDoclet implements Doclet {
           .forEach(element -> {
             if (element.getKind() == ElementKind.MODULE || element.getKind() == ElementKind.PACKAGE || element instanceof TypeElement) {
               DocTrees docTrees = docEnv.getDocTrees();
-              MarkdownPage markdownPage = new MarkdownPage(pageStyleFor(element),
+              MarkdownPage markdownPage = new MarkdownPage(element,
                                                            docEnv,
                                                            t -> resolveDocumentPathForType(t, typeDictionary)).title(
                   element.getKind(),
@@ -138,6 +182,7 @@ public class MdDoclet implements Doclet {
                      .filter(e -> e.getModifiers()
                                    .contains(PUBLIC) || e.getModifiers()
                                                          .contains(PROTECTED) || e instanceof PackageElement)
+                     .filter(this::elementMatchesFilterIfPackage)
                      .forEach(finalMarkdownPage::addChild);
               
               Arrays.stream(markdownPage.renderAsIndexPage()
@@ -172,11 +217,11 @@ public class MdDoclet implements Doclet {
     return true;
   }
   
-  private static MarkdownPage.PageStyle pageStyleFor(Element element) {
-    return element instanceof TypeElement
-           ? MarkdownPage.PageStyle.TYPE
-           : MarkdownPage.PageStyle.INDEX;
+  private boolean elementMatchesFilterIfPackage(Element e) {
+    return !(e instanceof PackageElement packageElement) || this.packageFilter.test(
+        (ModuleElement) packageElement.getEnclosingElement(), packageElement);
   }
+  
   
   private String resolveDocumentPathForType(String t, Map<String, String> typeDictionary) {
     var poundSignPosition = t.indexOf("#");

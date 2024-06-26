@@ -1,5 +1,6 @@
 package com.github.dakusui.mddoclet;
 
+import com.github.dakusui.thincrest_pcond.forms.Printables;
 import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.DocTree;
 import com.sun.source.util.DocTrees;
@@ -16,6 +17,7 @@ import static java.util.stream.Collectors.joining;
 
 public class MarkdownPage {
   private final PageStyle pageStyle;
+  private final Element targetElement;
   private String overview = null;
   
   
@@ -44,10 +46,12 @@ public class MarkdownPage {
   private String title;
   private final Function<String, String> docResolver;
   
-  MarkdownPage(PageStyle pageStyle, DocletEnvironment docletEnvironment, Function<String, String> docResolver) {
-    this.pageStyle = pageStyle;
+  MarkdownPage(Element targetElement, DocletEnvironment docletEnvironment, Function<String, String> docResolver) {
+    this.pageStyle = pageStyleFor(targetElement);
+    this.targetElement = targetElement;
     this.docletEnvironment = docletEnvironment;
     this.docResolver = docResolver;
+    System.out.println(Printables.function("hello", Function.identity()));
   }
   
   public MarkdownPage title(ElementKind kind, String name) {
@@ -62,6 +66,7 @@ public class MarkdownPage {
     return this;
   }
   
+  @SuppressWarnings("UnusedReturnValue")
   public MarkdownPage overview(String overview) {
     this.overview = overview;
     return this;
@@ -160,6 +165,12 @@ public class MarkdownPage {
                                 .collect(joining(", ")));
   }
   
+  private static MarkdownPage.PageStyle pageStyleFor(Element element) {
+    return element instanceof TypeElement
+           ? MarkdownPage.PageStyle.TYPE
+           : MarkdownPage.PageStyle.INDEX;
+  }
+  
   private static String returnTypeOf(ExecutableElement element) {
     String returnType;
     if (element.getKind() != ElementKind.CONSTRUCTOR) {
@@ -203,6 +214,8 @@ public class MarkdownPage {
     
     sb.append(String.format("# Enclosed Elements%n"));
     for (Element element : children) {
+      if (!Objects.equals(this.targetElement, element.getEnclosingElement()))
+        continue;
       if (element instanceof TypeElement typeElement) {
         sb.append(String.format("- **%s:** [%s](%s.md)%n",
                                 element.getKind(),

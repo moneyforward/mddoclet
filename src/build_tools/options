@@ -7,6 +7,8 @@ com.github.dakusui.mddoclet='./src/main/java:./target/generated-sources/annotati
 -doclet
 'com.github.dakusui.mddoclet.MdDoclet'
 -docletpath
+'./target/mddoclet-1.0.4-SNAPSHOT.jar'
+-classpath
 './target/mddoclet-1.0.4-SNAPSHOT.jar:~/.m2/repository/com/github/dakusui/thincrest-pcond/1.1.0/thincrest-pcond-1.1.0.jar:~/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar'
 -encoding
 'UTF-8'
@@ -14,7 +16,6 @@ com.github.dakusui.mddoclet='./src/main/java:./target/generated-sources/annotati
 './src/main/javadoc/overview.md'
 -protected
 -d ./target/classes/JavaMarkdown
---source-path ./src/main/java
---class-path ./target/classes
 -base-path target/classes/JavaMarkdown
+-target-packages '.*#.*mddoclet.*'
 
