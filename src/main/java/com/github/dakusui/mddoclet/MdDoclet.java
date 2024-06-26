@@ -12,6 +12,7 @@ import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import java.io.*;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.github.dakusui.mddoclet.MdDocletOptions.createOption;
@@ -26,6 +27,7 @@ public class MdDoclet implements Doclet {
   private Reporter reporter;
   private File overviewFile = null;
   private File destinationDirectory = new File(".");
+  private String basePath = "/";
   
   /**
    * Creates an instance of this class.
@@ -92,6 +94,14 @@ public class MdDoclet implements Doclet {
                          report("Overview file does not exist or is not readable: " + overviewFile);
                          return false;
                        }
+                       return true;
+                     }),
+        createOption("-base-path",
+                     "<pathFromSiteUrlToDocRoot>",
+                     "Path from site URL to the document root",
+                     args -> {
+                       report("Relative path from the site URL to the document root is set to " + args.getFirst());
+                       MdDoclet.this.basePath = args.getFirst();
                        return true;
                      }));
   }
@@ -186,7 +196,7 @@ public class MdDoclet implements Doclet {
                    .map(MdDoclet::readStringFromFile);
   }
   
-  private static String  readStringFromFile(File f) {
+  private static String readStringFromFile(File f) {
     StringBuilder sb = new StringBuilder();
     try (var reader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
       String line;
