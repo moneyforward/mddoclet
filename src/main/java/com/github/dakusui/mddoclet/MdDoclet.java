@@ -12,7 +12,6 @@ import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import java.io.*;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.github.dakusui.mddoclet.MdDocletOptions.createOption;
