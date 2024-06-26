@@ -8,6 +8,7 @@ import jdk.javadoc.doclet.DocletEnvironment;
 import javax.lang.model.element.*;
 import java.io.*;
 import java.util.*;
+import java.util.function.Function;
 
 import static com.github.dakusui.mddoclet.MdDoclet.packageNameOf;
 import static com.github.dakusui.mddoclet.MdDoclet.typeNameOf;
@@ -16,6 +17,7 @@ import static java.util.stream.Collectors.joining;
 public class MarkdownPage {
   private final PageStyle pageStyle;
   private String overview = null;
+  
   
   enum PageStyle {
     TYPE {
@@ -40,10 +42,12 @@ public class MarkdownPage {
   private List<? extends DocTree> tags = new ArrayList<>();
   private final List<Element> children = new ArrayList<>();
   private String title;
+  private final Function<String, String> docResolver;
   
-  MarkdownPage(PageStyle pageStyle, DocletEnvironment docletEnvironment) {
+  MarkdownPage(PageStyle pageStyle, DocletEnvironment docletEnvironment, Function<String, String> docResolver) {
     this.pageStyle = pageStyle;
     this.docletEnvironment = docletEnvironment;
+    this.docResolver = docResolver;
   }
   
   public MarkdownPage title(ElementKind kind, String name) {
@@ -83,6 +87,15 @@ public class MarkdownPage {
            : "(t.b.d.)";
   }
   
+  private static String resolvePathFor(String value) {
+    return null;
+  }
+  
+  /**
+   * Render this object as a markdown page for a type documentation.
+   *
+   * @return A rendered content of the page that this object represents
+   */
   public String renderAsTypePage() {
     StringBuilder sb = new StringBuilder().append(renderCommonPart());
     DocTrees docTrees = docletEnvironment.getDocTrees();
@@ -116,7 +129,7 @@ public class MarkdownPage {
                    sb.append(String.format("%n"));
                    
                    t.getBlockTags()
-                    .forEach((DocTree blockTagDocTree) -> renderTag(sb, createTag(blockTagDocTree)));
+                    .forEach((DocTree blockTagDocTree) -> renderTag(sb, createTag(blockTagDocTree), this.docResolver));
                    sb.append(String.format("%n"));
                  });
     return sb.toString();
@@ -209,8 +222,8 @@ public class MarkdownPage {
     return sb.toString();
   }
   
-  private static void renderTag(StringBuilder sb, Tag tag) {
-    sb.append(String.format("+ **%s:** %s%n", tag.tagType(), tag.tagValue()));
+  private static void renderTag(StringBuilder sb, Tag tag, Function<String, String> docResolver) {
+    sb.append(String.format("+ **%s:** %s%n", tag.tagType(), tag.tagValue(docResolver)));
   }
   
   
@@ -222,22 +235,22 @@ public class MarkdownPage {
     if (this.body != null)
       sb.append(String.format("%s%n%n", this.body));
     sb.append(String.format("%n"));
-    sb.append(renderTags(this.tags));
+    sb.append(renderTags(this.tags, this.docResolver));
     sb.append(String.format("%n"));
     return sb.toString();
   }
   
-  private static String renderTags(List<? extends DocTree> tags) {
+  private static String renderTags(List<? extends DocTree> tags, Function<String, String> docResolver) {
     StringBuilder sb = new StringBuilder();
     for (Tag tag : tags.stream()
-                        .map(MarkdownPage::createTag)
-                        .toList()) {
-      renderTag(sb, tag);
+                       .map(MarkdownPage::createTag)
+                       .toList()) {
+      renderTag(sb, tag, docResolver);
     }
     return sb.toString();
   }
   
-  
+  @SuppressWarnings("UnusedReturnValue")
   public MarkdownPage addChild(Element childElement) {
     this.children.add(childElement);
     return this;
@@ -255,19 +268,19 @@ public class MarkdownPage {
     enum Type {
       LINK {
         @Override
-        String format(String value) {
+        String format(String value, Function<String, String> docResolver) {
           return "[here](" + value + ")";
         }
       },
       SEE {
         @Override
-        String format(String value) {
-          return "`" + value + "`";
+        String format(String value, Function<String, String> docResolver) {
+          return "[`" + value + "`](" + docResolver.apply(value) + ")";
         }
       },
       PARAM {
         @Override
-        String format(String value) {
+        String format(String value, Function<String, String> docResolver) {
           value = value.replaceAll(" +", " ")
                        .replaceAll("^ +", "");
           String ret = "";
@@ -294,28 +307,27 @@ public class MarkdownPage {
       },
       RETURN {
         @Override
-        String format(String value) {
+        String format(String value, Function<String, String> docResolver) {
           return value;
         }
       },
       UNKNOWN {
         @Override
-        String format(String value) {
+        String format(String value, Function<String, String> docResolver) {
           return "(doc contains some error)";
         }
       };
       
-      abstract String format(String value);
+      abstract String format(String value, Function<String, String> docResolver);
     }
     
-    @Override
-    public String tagValue() {
+    public String tagValue(Function<String, String> docResolver) {
       return this.tagType()
-                 .format(this.tagValue);
+                 .format(this.tagValue, docResolver);
     }
     
     public static Tag create(String tagName, String tagValue) {
-      return new Tag(tagNameToType(tagName), tagValue);
+      return new Tag(tagNameToType(tagName), (tagValue != null ? tagValue : "").trim());
     }
     
     private static Type tagNameToType(String tagName) {

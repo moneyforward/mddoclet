@@ -16,3 +16,5 @@ com.github.dakusui.mddoclet='./src/main/java:./target/generated-sources/annotati
 -d ./target/classes/JavaMarkdown
 --source-path ./src/main/java
 --class-path ./target/classes
+-base-path target/classes/JavaMarkdown
+
