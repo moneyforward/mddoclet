@@ -176,7 +176,7 @@ public class MarkdownPage {
                                 typeNameOf(typeElement),
                                 typeNameOf(typeElement)));
       } else if (element instanceof PackageElement) {
-        sb.append(String.format("- **%s:** [%s](%s/README.md)%n",
+        sb.append(String.format("- **%s:** [%s](%s/)%n",
                                 element.getKind(),
                                 packageNameOf(element, docletEnvironment.getElementUtils()),
                                 packageNameOf(element, docletEnvironment.getElementUtils())));
