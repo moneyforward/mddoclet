@@ -98,6 +98,7 @@
             <groupId>com.github.dakusui</groupId>
             <artifactId>thincrest-pcond</artifactId>
             <version>${thincrest-pcond.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -306,16 +307,19 @@
                     <docletArtifact>
                         <groupId>com.github.dakusui</groupId>
                         <artifactId>mddoclet</artifactId>
-                        <version>1.0.0-SNAPSHOT</version>
+                        <version>1.0.4-SNAPSHOT</version>
                     </docletArtifact>
                     <useStandardDocletOptions>false</useStandardDocletOptions>
                     <additionalOptions>
                         <additionalOption>-overview ${project.basedir}/src/main/javadoc/overview.md</additionalOption>
                         <additionalOption>-d ${project.build.outputDirectory}/JavaMarkdown</additionalOption>
                         <additionalOption>--source-path ${project.build.sourceDirectory}</additionalOption>
-                        <additionalOption>--class-path ${project.build.outputDirectory}</additionalOption>
                         <additionalOption>-base-path ${project.build.outputDirectory}/JavaMarkdown</additionalOption>
+                        <additionalOption>-target-packages '.*#.*mddoclet.*'</additionalOption>
                     </additionalOptions>
+                    <additionalJOptions>
+                        <additionalOption>-J-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005</additionalOption>
+                    </additionalJOptions>
                     <skip>true</skip>
                 </configuration>
                 <executions>
@@ -497,7 +501,7 @@
             </activation>
         </profile>
         <profile>
-            <id>generate-javadocs</id>
+            <id>generate-javadoc</id>
             <build>
                 <plugins>
                     <plugin>
