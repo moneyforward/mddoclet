@@ -1,6 +1,5 @@
 package com.github.dakusui.mddoclet;
 
-import com.github.dakusui.thincrest_pcond.forms.Printables;
 import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.DocTree;
 import com.sun.source.util.DocTrees;
@@ -51,7 +50,6 @@ public class MarkdownPage {
     this.targetElement = targetElement;
     this.docletEnvironment = docletEnvironment;
     this.docResolver = docResolver;
-    System.out.println(Printables.function("hello", Function.identity()));
   }
   
   public MarkdownPage title(ElementKind kind, String name) {
@@ -60,8 +58,7 @@ public class MarkdownPage {
   }
   
   public MarkdownPage commentTree(DocCommentTree docCommentTree) {
-    this.body = docCommentTree.getFullBody()
-                              .toString();
+    this.body = extractCommentBody(docCommentTree);
     this.tags = docCommentTree.getBlockTags();
     return this;
   }
@@ -90,10 +87,6 @@ public class MarkdownPage {
     return i >= 0
            ? s.substring(i)
            : "(t.b.d.)";
-  }
-  
-  private static String resolvePathFor(String value) {
-    return null;
   }
   
   /**
@@ -128,8 +121,7 @@ public class MarkdownPage {
                  .filter(Objects::nonNull)
                  .forEach((DocCommentTree t) -> {
                    sb.append(String.format("%n"));
-                   t.getFullBody()
-                    .forEach((DocTree c) -> sb.append(c));
+                   sb.append(extractCommentBody(t));
                    sb.append(String.format("%n"));
                    sb.append(String.format("%n"));
                    
@@ -138,6 +130,13 @@ public class MarkdownPage {
                    sb.append(String.format("%n"));
                  });
     return sb.toString();
+  }
+  
+  private static String extractCommentBody(DocCommentTree t) {
+    // This is a limitation, where @see,@param,@link,@return inside a code block cannot be rendered.
+    // Also, a multi-line text after these cannot be handled properly.
+    return Objects.toString(t)
+                  .replaceAll("@(see|param|link|return)[ \t]+.+", "");
   }
   
   private static String renderAnchorForVariableElement(VariableElement variableElement) {
@@ -236,7 +235,8 @@ public class MarkdownPage {
   }
   
   private static void renderTag(StringBuilder sb, Tag tag, Function<String, String> docResolver) {
-    sb.append(String.format("+ **%s:** %s%n", tag.tagType(), tag.tagValue(docResolver)));
+    if (tag.tagType != Tag.Type.UNKNOWN)
+      sb.append(String.format("+ **%s:** %s%n", tag.tagType(), tag.tagValue(docResolver)));
   }
   
   
@@ -340,7 +340,9 @@ public class MarkdownPage {
     }
     
     public static Tag create(String tagName, String tagValue) {
-      return new Tag(tagNameToType(tagName), (tagValue != null ? tagValue : "").trim());
+      return new Tag(tagNameToType(tagName), (tagValue != null
+                                              ? tagValue
+                                              : "").trim());
     }
     
     private static Type tagNameToType(String tagName) {
