@@ -307,7 +307,7 @@
                     <docletArtifact>
                         <groupId>com.github.dakusui</groupId>
                         <artifactId>mddoclet</artifactId>
-                        <version>1.0.4-SNAPSHOT</version>
+                        <version>${project.version}</version>
                     </docletArtifact>
                     <useStandardDocletOptions>false</useStandardDocletOptions>
                     <additionalOptions>

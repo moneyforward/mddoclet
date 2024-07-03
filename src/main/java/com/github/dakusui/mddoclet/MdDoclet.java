@@ -150,6 +150,14 @@ public class MdDoclet implements Doclet {
    * A main entry point of this doclet.
    *
    * On a call of this method, the doclet generates markdown based document.
+   * ```java
+   * @Retention(RUNTIME)
+   * public class Main {
+   *   public static void main(String... args) {
+   *     System.out.println("Hello!);
+   *   }
+   * }
+   * ```
    *
    * @param docEnv from which essential information can be extracted
    * @return {@code true} on success.
@@ -165,9 +173,10 @@ public class MdDoclet implements Doclet {
               DocTrees docTrees = docEnv.getDocTrees();
               MarkdownPage markdownPage = new MarkdownPage(element,
                                                            docEnv,
-                                                           t -> resolveDocumentPathForType(t, typeDictionary)).title(
-                  element.getKind(),
-                  fullyQualifiedNameOf(element));
+                                                           t -> resolveDocumentPathForType(t, typeDictionary))
+                  .title(
+                      element.getKind(),
+                      fullyQualifiedNameOf(element));
               
               if (element instanceof ModuleElement) {
                 reedOverview().ifPresent(markdownPage::overview);
@@ -229,7 +238,8 @@ public class MdDoclet implements Doclet {
                                   ? t.length()
                                   : poundSignPosition);
     return typeDictionary.containsKey(typeName)
-           ? String.format("%s%s", this.basePath,
+           ? String.format("%s%s",
+                           this.basePath,
                            typeDictionary.get(typeName))
            : "unknownType.md";
   }
@@ -244,7 +254,9 @@ public class MdDoclet implements Doclet {
   }
   
   private static String docLocationFromBasePath(TypeElement typeElement, Elements utils) {
-    return String.format("%s/%s/%s.md", moduleNameOf(typeElement, utils), packageNameOf(typeElement, utils),
+    return String.format("%s/%s/%s",
+                         moduleNameOf(typeElement, utils),
+                         packageNameOf(typeElement, utils),
                          typeNameOf(typeElement));
   }
   
