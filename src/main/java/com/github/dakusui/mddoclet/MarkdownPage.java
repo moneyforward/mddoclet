@@ -136,7 +136,8 @@ public class MarkdownPage {
     // This is a limitation, where @see,@param,@link,@return inside a code block cannot be rendered.
     // Also, a multi-line text after these cannot be handled properly.
     return Objects.toString(t)
-                  .replaceAll("@(see|param|link|return)[ \t]+.+", "");
+                  .replaceAll("@(see|param|link|return)[ \t]+.+", "")
+                  .replaceAll(" +```", "```");
   }
   
   private static String renderAnchorForVariableElement(VariableElement variableElement) {
