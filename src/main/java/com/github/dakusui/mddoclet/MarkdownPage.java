@@ -15,6 +15,7 @@ import static com.github.dakusui.mddoclet.MdDoclet.typeNameOf;
 import static java.util.stream.Collectors.joining;
 
 public class MarkdownPage {
+  public static final String LINEBREAK = "__MDDOCLET_LINEBREAK__";
   private final PageStyle pageStyle;
   private final Element targetElement;
   private String overview = null;
@@ -135,11 +136,23 @@ public class MarkdownPage {
   private static String extractCommentBody(DocCommentTree t) {
     // This is a limitation, where @see,@param,@link,@return inside a code block cannot be rendered.
     // Also, a multi-line text after these cannot be handled properly.
-    return Objects.toString(t)
-                  .replaceAll("@(see|param|link|return)[ \t]+.+", "")
-                  .replaceAll(" +```", "```");
+    return decodeUnicodeEscapes(Objects.toString(t)
+                                       .replace("\n", LINEBREAK))
+        .replaceAll(LINEBREAK, String.format("%n"))
+        .replaceAll("@(see|param|link|return)[ \t]+.+", "")
+        .replaceAll(" +```", "```");
   }
   
+  private static String decodeUnicodeEscapes(String input) {
+    Properties props = new Properties();
+    try {
+      props.load(new StringReader("key=" + input));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return props.getProperty("key");
+  }
+
   private static String renderAnchorForVariableElement(VariableElement variableElement) {
     return String.format("<a id=\"%s\"></a>%n", variableElement.getSimpleName());
   }
