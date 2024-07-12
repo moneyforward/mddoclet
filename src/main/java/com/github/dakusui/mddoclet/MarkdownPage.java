@@ -15,7 +15,7 @@ import static com.github.dakusui.mddoclet.MdDoclet.typeNameOf;
 import static java.util.stream.Collectors.joining;
 
 public class MarkdownPage {
-  public static final String LINEBREAK = "__MDDOCLET_LINEBREAK__";
+  public static final String LINEBREAK_PLACEHOLDER = "__MDDOCLET_LINEBREAK__";
   private final PageStyle pageStyle;
   private final Element targetElement;
   private String overview = null;
@@ -104,6 +104,13 @@ public class MarkdownPage {
                                                         .toString()))
                  .filter(e -> Set.of(ElementKind.METHOD, ElementKind.CONSTRUCTOR, ElementKind.FIELD)
                                  .contains(e.getKind()))
+                 .filter(e -> !(e instanceof ExecutableElement &&
+                     e.getEnclosingElement()
+                      .getKind() == ElementKind.ENUM &&
+                     Set.of("values",
+                            "valueOf")
+                        .contains(e.getSimpleName()
+                                   .toString())))
                  .peek((Element element) -> {
                    if (element instanceof ExecutableElement executableElement) {
                      sb.append(renderAnchorForExecutableElement(executableElement));
@@ -137,10 +144,11 @@ public class MarkdownPage {
     // This is a limitation, where @see,@param,@link,@return inside a code block cannot be rendered.
     // Also, a multi-line text after these cannot be handled properly.
     return decodeUnicodeEscapes(Objects.toString(t)
-                                       .replace("\n", LINEBREAK))
-        .replaceAll(LINEBREAK, String.format("%n"))
+                                       .replace("\n", LINEBREAK_PLACEHOLDER))
+        .replaceAll(LINEBREAK_PLACEHOLDER, String.format("%n"))
         .replaceAll("@(see|param|link|return)[ \t]+.+", "")
-        .replaceAll(" +```", "```");
+        .replaceAll(String.format("%n +```"), String.format("%n```"))
+        .replaceAll(String.format("%n +#"), String.format("%n#"));
   }
   
   private static String decodeUnicodeEscapes(String input) {
@@ -152,7 +160,7 @@ public class MarkdownPage {
     }
     return props.getProperty("key");
   }
-
+  
   private static String renderAnchorForVariableElement(VariableElement variableElement) {
     return String.format("<a id=\"%s\"></a>%n", variableElement.getSimpleName());
   }
@@ -225,7 +233,7 @@ public class MarkdownPage {
     StringBuilder sb = new StringBuilder();
     sb.append(renderCommonPart());
     
-    sb.append(String.format("# Enclosed Elements%n"));
+    sb.append(String.format("## Enclosed Elements%n"));
     for (Element element : children) {
       if (!Objects.equals(this.targetElement, element.getEnclosingElement()))
         continue;
