@@ -104,6 +104,13 @@ public class MarkdownPage {
                                                         .toString()))
                  .filter(e -> Set.of(ElementKind.METHOD, ElementKind.CONSTRUCTOR, ElementKind.FIELD)
                                  .contains(e.getKind()))
+                 .filter(e -> !(e instanceof ExecutableElement &&
+                     e.getEnclosingElement()
+                      .getKind() == ElementKind.ENUM &&
+                     Set.of("values",
+                            "valueOf")
+                        .contains(e.getSimpleName()
+                                   .toString())))
                  .peek((Element element) -> {
                    if (element instanceof ExecutableElement executableElement) {
                      sb.append(renderAnchorForExecutableElement(executableElement));
@@ -140,7 +147,8 @@ public class MarkdownPage {
                                        .replace("\n", LINEBREAK))
         .replaceAll(LINEBREAK, String.format("%n"))
         .replaceAll("@(see|param|link|return)[ \t]+.+", "")
-        .replaceAll(" +```", "```");
+        .replaceAll(" +```", "```")
+        .replaceAll(" +#+", "```");
   }
   
   private static String decodeUnicodeEscapes(String input) {
@@ -152,7 +160,7 @@ public class MarkdownPage {
     }
     return props.getProperty("key");
   }
-
+  
   private static String renderAnchorForVariableElement(VariableElement variableElement) {
     return String.format("<a id=\"%s\"></a>%n", variableElement.getSimpleName());
   }
