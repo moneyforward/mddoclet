@@ -151,19 +151,19 @@ public class MdDoclet implements Doclet {
    *
    * On a call of this method, the doclet generates markdown based document.
    * ```java
+   * @Retention(RUNTIME)
+   * public class Main {
+   *   public static void main(String... args) {
+   *     System.out.println("Hello!);
+   *   }
+   * }
+   * ```
    *
    * @param docEnv from which essential information can be extracted
    * @return {@code true} on success.
-   * @Retention(RUNTIME) public class Main {
-   * public static void main(String... args) {
-   * System.out.println("Hello!);
-   * }
-   * }
-   * ```
    */
   @Override
   public boolean run(DocletEnvironment docEnv) {
-    this.report("Hello, I'm a Markdown Doclet!");
     var utils = docEnv.getElementUtils();
     var typeDictionary = scanElementsToBuildTypeDictionary(docEnv.getIncludedElements(), utils);
     docEnv.getIncludedElements()
