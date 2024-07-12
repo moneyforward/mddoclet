@@ -12,7 +12,6 @@ import java.util.function.Function;
 
 import static com.github.dakusui.mddoclet.MdDoclet.packageNameOf;
 import static com.github.dakusui.mddoclet.MdDoclet.typeNameOf;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.joining;
 
 public class MarkdownPage {
@@ -140,7 +139,8 @@ public class MarkdownPage {
     return decodeUnicodeEscapes(Objects.toString(t)
                                        .replace("\n", LINEBREAK))
         .replaceAll(LINEBREAK, String.format("%n"))
-        .replaceAll("@(see|param|link|return)[ \t]+.+", "");
+        .replaceAll("@(see|param|link|return)[ \t]+.+", "")
+        .replaceAll(" +```", "```");
   }
   
   private static String decodeUnicodeEscapes(String input) {
@@ -152,19 +152,7 @@ public class MarkdownPage {
     }
     return props.getProperty("key");
   }
-  
-  private static String encodeToUnicodeEscapes(String input) {
-    StringBuilder escapedString = new StringBuilder();
-    for (char ch : input.toCharArray()) {
-      if (ch >= 128) { // Check if the character is outside the ASCII range
-        escapedString.append(String.format("\\u%04x", (int) ch));
-      } else {
-        escapedString.append(ch); // Append regular ASCII characters normally
-      }
-    }
-    return escapedString.toString();
-  }
-  
+
   private static String renderAnchorForVariableElement(VariableElement variableElement) {
     return String.format("<a id=\"%s\"></a>%n", variableElement.getSimpleName());
   }
@@ -296,7 +284,7 @@ public class MarkdownPage {
   }
   
   public void writeTo(File outputFile) {
-    try (var ow = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(outputFile)), UTF_8)) {
+    try (var ow = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(outputFile)))) {
       ow.write(this.pageStyle.render(this));
     } catch (IOException e) {
       throw new RuntimeException(e);
