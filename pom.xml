@@ -303,6 +303,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
+                    <encoding>UTF-8</encoding>
                     <doclet>com.github.dakusui.mddoclet.MdDoclet</doclet>
                     <docletArtifact>
                         <groupId>com.github.dakusui</groupId>
@@ -317,9 +318,6 @@
                         <additionalOption>-base-path ${project.build.outputDirectory}/JavaMarkdown</additionalOption>
                         <additionalOption>-target-packages '.*#.*mddoclet.*'</additionalOption>
                     </additionalOptions>
-                    <additionalJOptions>
-                        <additionalOption>-J-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005</additionalOption>
-                    </additionalJOptions>
                     <skip>true</skip>
                 </configuration>
                 <executions>
@@ -508,6 +506,23 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <configuration>
+                            <skip>false</skip> <!-- Enable Javadoc generation -->
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>debug-javadoc</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <additionalJOptions>
+                                <additionalOption>-J-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005</additionalOption>
+                            </additionalJOptions>
                             <skip>false</skip> <!-- Enable Javadoc generation -->
                         </configuration>
                     </plugin>

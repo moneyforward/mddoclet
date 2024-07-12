@@ -1,9 +1,11 @@
 package com.github.dakusui.mddoclet.example;
 
 /**
- * Hello, I am example class.
- * How are you?
- * I am implementing {@link ExampleInterface}.
+ * Hello, I am the first example class.
+ *
+ * Hallo!
+ * こんにちは! How are you?
+ * I am implementing `ExampleInterface`.
  *
  * @see ExampleInterface
  * @link <a href="http://www.example.com">...</a>
