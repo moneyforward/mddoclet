@@ -32,7 +32,7 @@ Or you can perhaps just do `{brew,sudo apt,sudo yum} install {maven,graphviz}`.
 .Build
 [source, bash]
 ----
-$ mvn clean compile
+mvn clean compile
 ----
 
 This just compiles your production codes.
@@ -40,7 +40,7 @@ This just compiles your production codes.
 .Conduct Unit Test
 [source, bash]
 ----
-$ mvn clean compile test
+mvn clean compile test
 ----
 
 This compiles your production and test codes and then executes the tests.
@@ -48,7 +48,7 @@ This compiles your production and test codes and then executes the tests.
 .Generating Site
 [source, bash]
 ----
-$ mvn clean package site
+mvn clean package site
 ----
 
 Generates the site under `target/site` in the following structure.
@@ -70,7 +70,7 @@ To configure the coverage, refer to <<mutationTesting>>.
 .Deploying (publishing) the Site
 [source, bash]
 ----
-$ mvn clean package site-deply
+mvn clean package site-deply
 ----
 
 This generates the documentation and reports and push them to `gh-pages` branch of your repository.
@@ -81,7 +81,7 @@ The documentation will be available as the repository's "gh-pages" site.
 
 .Conduct Mutation Test
 ----
-$ mvn clean compile test org.pitest:pitest-maven:mutationCoverage
+mvn clean compile test org.pitest:pitest-maven:mutationCoverage
 ----
 [[mutationTesting]]
 
@@ -113,7 +113,7 @@ After a successful execution, it generates a pitest report under a directory `ta
 .Build Javadoc
 [source, bash]
 ----
-$ mvn clean javadoc:javadoc
+mvn clean javadoc:javadoc
 ----
 This generates JavaDoc under `target/site/apidocs`.
 Useful for writing/improving your JavaDoc.
