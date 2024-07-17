@@ -1,11 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.github.dakusui</groupId>
+    <groupId>com.github.moneyforward</groupId>
     <artifactId>mddoclet</artifactId>
     <packaging>jar</packaging>
     <version>1.0.9-SNAPSHOT</version>
-    <description>A library to synthesize an object from interfaces dynamically
-    </description>
+    <description>A doclet generates documentation from JavaDoc comments in markdown formats</description>
 
     <name>mddoclet</name>
     <url>http://dakusui.github.io/${project.name}</url>
@@ -306,7 +306,7 @@
                     <encoding>UTF-8</encoding>
                     <doclet>com.github.dakusui.mddoclet.MdDoclet</doclet>
                     <docletArtifact>
-                        <groupId>com.github.dakusui</groupId>
+                        <groupId>com.github.moneyforward</groupId>
                         <artifactId>mddoclet</artifactId>
                         <version>${project.version}</version>
                     </docletArtifact>
@@ -384,7 +384,7 @@
                                 <toc>left</toc>
                                 <icons>font</icons>
                                 <sectanchors>true</sectanchors>
-                                <idprefix />
+                                <idprefix/>
                                 <idseparator>-</idseparator>
                             </attributes>
                         </configuration>
