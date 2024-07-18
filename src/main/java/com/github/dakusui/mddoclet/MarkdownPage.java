@@ -99,9 +99,7 @@ public class MarkdownPage {
     StringBuilder sb = new StringBuilder().append(renderCommonPart());
     DocTrees docTrees = docletEnvironment.getDocTrees();
     this.children.stream()
-                 .sorted(Comparator.comparing(Element::getKind)
-                                   .thenComparing(o -> o.getSimpleName()
-                                                        .toString()))
+                 .sorted(comparingByKindThenSimpleName())
                  .filter(e -> Set.of(ElementKind.METHOD, ElementKind.CONSTRUCTOR, ElementKind.FIELD)
                                  .contains(e.getKind()))
                  .filter(e -> !(e instanceof ExecutableElement &&
@@ -138,6 +136,24 @@ public class MarkdownPage {
                    sb.append(String.format("%n"));
                  });
     return sb.toString();
+  }
+  
+  private static Comparator<Element> comparingByKindThenSimpleName() {
+    return Comparator.comparing(Element::getKind)
+                     .thenComparing(o -> o.getSimpleName()
+                                          .toString());
+  }
+  
+  private static Comparator<Element> byKindThenQualifiedName() {
+    return Comparator.comparing(Element::getKind)
+                     .thenComparing(MarkdownPage::qualifiedNameOf);
+  }
+  
+  private static String qualifiedNameOf(Element o) {
+    if (o instanceof QualifiedNameable e)
+      return e.getQualifiedName()
+              .toString();
+    return "~" + o.getSimpleName().toString();
   }
   
   private static String extractCommentBody(DocCommentTree t) {
@@ -234,7 +250,9 @@ public class MarkdownPage {
     sb.append(renderCommonPart());
     
     sb.append(String.format("## Enclosed Elements%n"));
-    for (Element element : children) {
+    for (Element element : children.stream()
+                                   .sorted(byKindThenQualifiedName())
+                                   .toList()) {
       if (!Objects.equals(this.targetElement, element.getEnclosingElement()))
         continue;
       if (element instanceof TypeElement typeElement) {
