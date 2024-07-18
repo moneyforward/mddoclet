@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: mddoclet
+  description: A doclet that generates documentation in techdocs compliant markdown.
+  annotations:
+    github.com/project-slug: moneyforward/mddoclet
+spec:
+  type: tool
+  lifecycle: experimental
+  owner: dakusui
+  dependsOn: []
