@@ -3,6 +3,13 @@ kind: Component
 metadata:
   name: mddoclet
   description: A doclet that generates documentation in techdocs compliant markdown.
+  tags:
+    - java
+    - doclet
+  links:
+    - url: https://github.com/moneyforward/mddoclet
+      title: github
+      icon: github
   annotations:
     github.com/project-slug: moneyforward/mddoclet
 spec:
