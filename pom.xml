@@ -467,12 +467,12 @@
         <snapshotRepository>
             <id>github</id>
             <name>GitHub Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/dakusui/${project.name}</url>
+            <url>https://maven.pkg.github.com/moneyforward/${project.name}</url>
         </snapshotRepository>
         <repository>
             <id>github</id>
             <name>GitHub Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/dakusui/${project.name}</url>
+            <url>https://maven.pkg.github.com/moneyfoward/${project.name}</url>
         </repository>
         <site>
             <id>${project.name}</id>
