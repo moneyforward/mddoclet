@@ -3,7 +3,7 @@
     <groupId>com.github.moneyforward</groupId>
     <artifactId>mddoclet</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.9</version>
+    <version>1.0.10-SNAPSHOT</version>
     <description>A doclet generates documentation from JavaDoc comments in markdown formats</description>
 
     <name>mddoclet</name>
@@ -15,7 +15,7 @@
         <developerConnection>scm:git:git@github.com:dakusui/${project.name}.git
         </developerConnection>
         <url>http://dakusui.github.io/${project.name}</url>
-        <tag>v1.0.9</tag>
+        <tag>${project.name}-${project.version}</tag>
     </scm>
 
     <licenses>
