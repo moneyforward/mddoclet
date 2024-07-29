@@ -4,7 +4,7 @@
     <groupId>com.github.moneyforward</groupId>
     <artifactId>mddoclet</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.9-SNAPSHOT</version>
+    <version>1.0.11-SNAPSHOT</version>
     <description>A doclet generates documentation from JavaDoc comments in markdown formats</description>
 
     <name>mddoclet</name>
