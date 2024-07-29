@@ -109,7 +109,8 @@ public class MarkdownPage {
                             "valueOf")
                         .contains(e.getSimpleName()
                                    .toString())))
-                 .peek((Element element) -> {
+                 .filter(e -> !(isNoParameterConstructor(e) && docTrees.getDocCommentTree(e) == null))
+                 .filter((Element element) -> {
                    if (element instanceof ExecutableElement executableElement) {
                      sb.append(renderAnchorForExecutableElement(executableElement));
                      sb.append(renderSectionTitleForExecutableElement(executableElement));
@@ -117,6 +118,7 @@ public class MarkdownPage {
                      sb.append(renderAnchorForVariableElement(variableElement));
                      sb.append(renderSectionTitleForVariableElement(element, variableElement));
                    }
+                   return true;
                  })
                  .map(docTrees::getDocCommentTree)
                  .peek(tree -> {
@@ -138,6 +140,11 @@ public class MarkdownPage {
     return sb.toString();
   }
   
+  private static boolean isNoParameterConstructor(Element e) {
+    return (e instanceof ExecutableElement elem) && e.getKind() == ElementKind.CONSTRUCTOR && elem.getParameters()
+                                                                                                  .isEmpty();
+  }
+  
   private static Comparator<Element> comparingByKindThenSimpleName() {
     return Comparator.comparing(Element::getKind)
                      .thenComparing(o -> o.getSimpleName()
@@ -153,7 +160,8 @@ public class MarkdownPage {
     if (o instanceof QualifiedNameable e)
       return e.getQualifiedName()
               .toString();
-    return "~" + o.getSimpleName().toString();
+    return "~" + o.getSimpleName()
+                  .toString();
   }
   
   private static String extractCommentBody(DocCommentTree t) {
