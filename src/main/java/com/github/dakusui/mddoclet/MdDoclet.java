@@ -168,6 +168,7 @@ public class MdDoclet implements Doclet {
   public boolean run(DocletEnvironment docEnv) {
     var utils = docEnv.getElementUtils();
     var typeDictionary = scanElementsToBuildTypeDictionary(docEnv.getIncludedElements(), utils);
+    System.err.println("typeDictionary: " + typeDictionary);
     docEnv.getIncludedElements()
           .forEach(element -> {
             if (element.getKind() == ElementKind.MODULE || element.getKind() == ElementKind.PACKAGE || element instanceof TypeElement) {
@@ -249,19 +250,23 @@ public class MdDoclet implements Doclet {
     return includedElements.stream()
                            .filter(element -> element instanceof TypeElement)
                            .map(element -> (TypeElement) element)
-                           .collect(Collectors.toMap(e -> toSimpleNameContainingEnclosingClasses("",
-                                                                                                 e,
-                                                                                                 e.getEnclosingElement()),
+                           .collect(Collectors.toMap(e -> getSimpleNameContainingEnclosingClasses(e),
                                                      typeElement -> docLocationFromBasePath(typeElement, utils),
-                                                     (k1, string2) -> {
-                                                       System.err.println("WARNING: '" + string2 + "' is discarded because there is already an entry '" + k1 + "'");
+                                                     (k1, k2) -> {
+                                                       System.err.println("WARNING: '" + k2 + "' is discarded because there is already an entry '" + k1 + "'");
                                                        return k1;
                                                      }
                                                     ));
   }
   
+  private static String getSimpleNameContainingEnclosingClasses(TypeElement e) {
+    return toSimpleNameContainingEnclosingClasses("",
+                                                  e,
+                                                  e.getEnclosingElement());
+  }
+  
   private static String toSimpleNameContainingEnclosingClasses(String cur, TypeElement e, Element enclosingElement) {
-    if (enclosingElement == null)
+    if (enclosingElement instanceof PackageElement)
       return cur + e.getSimpleName()
                     .toString();
     else
