@@ -7,8 +7,8 @@ package com.github.dakusui.mddoclet.example;
  * こんにちは! How are you?
  * I am implementing `ExampleInterface`.
  *
- * @see ExampleInterface
  * @link <a href="http://www.example.com">...</a>
+ * @see ExampleInterface
  */
 public class ExampleClass implements ExampleInterface {
   /**
@@ -54,6 +54,16 @@ public class ExampleClass implements ExampleInterface {
     return exampleField2;
   }
   
+  /**
+   * Returns an `InnerExampleClass` object.
+   *
+   * @return An inner example class.
+   * @see ExampleClass.InnerExampleClass
+   */
+  public InnerExampleClass innerExampleClass() {
+    return new InnerExampleClass();
+  }
+  
   
   /**
    * @return A string representation of this object.
@@ -74,6 +84,10 @@ public class ExampleClass implements ExampleInterface {
      */
     public static void exampleMethod(String message) {
       System.out.println(message);
+    }
+    
+    public String hello() {
+      return "hello";
     }
   }
 }

@@ -150,6 +150,7 @@ public class MdDoclet implements Doclet {
    * A main entry point of this doclet.
    *
    * On a call of this method, the doclet generates markdown based document.
+   * <!--- @formatter:off --->
    * ```java
    * @Retention(RUNTIME)
    * public class Main {
@@ -158,6 +159,7 @@ public class MdDoclet implements Doclet {
    *   }
    * }
    * ```
+   * <!--- @formatter:on --->
    *
    * @param docEnv from which essential information can be extracted
    * @return {@code true} on success.
@@ -166,6 +168,7 @@ public class MdDoclet implements Doclet {
   public boolean run(DocletEnvironment docEnv) {
     var utils = docEnv.getElementUtils();
     var typeDictionary = scanElementsToBuildTypeDictionary(docEnv.getIncludedElements(), utils);
+    System.err.println("typeDictionary: " + typeDictionary);
     docEnv.getIncludedElements()
           .forEach(element -> {
             if (element.getKind() == ElementKind.MODULE || element.getKind() == ElementKind.PACKAGE || element instanceof TypeElement) {
@@ -247,9 +250,29 @@ public class MdDoclet implements Doclet {
     return includedElements.stream()
                            .filter(element -> element instanceof TypeElement)
                            .map(element -> (TypeElement) element)
-                           .collect(Collectors.toMap(e -> e.getSimpleName()
-                                                           .toString(),
-                                                     typeElement -> docLocationFromBasePath(typeElement, utils)));
+                           .collect(Collectors.toMap(e -> getSimpleNameContainingEnclosingClasses(e),
+                                                     typeElement -> docLocationFromBasePath(typeElement, utils),
+                                                     (k1, k2) -> {
+                                                       System.err.println("WARNING: '" + k2 + "' is discarded because there is already an entry '" + k1 + "'");
+                                                       return k1;
+                                                     }
+                                                    ));
+  }
+  
+  private static String getSimpleNameContainingEnclosingClasses(TypeElement e) {
+    return toSimpleNameContainingEnclosingClasses("",
+                                                  e,
+                                                  e.getEnclosingElement());
+  }
+  
+  private static String toSimpleNameContainingEnclosingClasses(String cur, TypeElement e, Element enclosingElement) {
+    if (enclosingElement instanceof PackageElement)
+      return cur + e.getSimpleName()
+                    .toString();
+    else
+      return toSimpleNameContainingEnclosingClasses(enclosingElement.getSimpleName() + "." + cur,
+                                                    e,
+                                                    enclosingElement.getEnclosingElement());
   }
   
   private static String docLocationFromBasePath(TypeElement typeElement, Elements utils) {
