@@ -249,9 +249,25 @@ public class MdDoclet implements Doclet {
     return includedElements.stream()
                            .filter(element -> element instanceof TypeElement)
                            .map(element -> (TypeElement) element)
-                           .collect(Collectors.toMap(e -> e.getSimpleName()
-                                                           .toString(),
-                                                     typeElement -> docLocationFromBasePath(typeElement, utils)));
+                           .collect(Collectors.toMap(e -> toSimpleNameContainingEnclosingClasses("",
+                                                                                                 e,
+                                                                                                 e.getEnclosingElement()),
+                                                     typeElement -> docLocationFromBasePath(typeElement, utils),
+                                                     (k1, string2) -> {
+                                                       System.err.println("WARNING: '" + string2 + "' is discarded because there is already an entry '" + k1 + "'");
+                                                       return k1;
+                                                     }
+                                                    ));
+  }
+  
+  private static String toSimpleNameContainingEnclosingClasses(String cur, TypeElement e, Element enclosingElement) {
+    if (enclosingElement == null)
+      return cur + e.getSimpleName()
+                    .toString();
+    else
+      return toSimpleNameContainingEnclosingClasses(enclosingElement.getSimpleName() + "." + cur,
+                                                    e,
+                                                    enclosingElement.getEnclosingElement());
   }
   
   private static String docLocationFromBasePath(TypeElement typeElement, Elements utils) {
