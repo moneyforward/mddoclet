@@ -150,6 +150,7 @@ public class MdDoclet implements Doclet {
    * A main entry point of this doclet.
    *
    * On a call of this method, the doclet generates markdown based document.
+   * <!--- @formatter:off --->
    * ```java
    * @Retention(RUNTIME)
    * public class Main {
@@ -158,6 +159,7 @@ public class MdDoclet implements Doclet {
    *   }
    * }
    * ```
+   * <!--- @formatter:on --->
    *
    * @param docEnv from which essential information can be extracted
    * @return {@code true} on success.
