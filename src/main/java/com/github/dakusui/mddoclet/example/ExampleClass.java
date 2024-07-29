@@ -1,5 +1,8 @@
 package com.github.dakusui.mddoclet.example;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Hello, I am the first example class.
  *
@@ -60,8 +63,8 @@ public class ExampleClass implements ExampleInterface {
    * @return An inner example class.
    * @see ExampleClass.InnerExampleClass
    */
-  public InnerExampleClass innerExampleClass() {
-    return new InnerExampleClass();
+  public List<InnerExampleClass> innerExampleClass() {
+    return Collections.emptyList();
   }
   
   
