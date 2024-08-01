@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.moneyforward</groupId>
     <artifactId>mddoclet</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.11-SNAPSHOT</version>
+    <version>1.0.11</version>
     <description>A doclet generates documentation from JavaDoc comments in markdown formats</description>
 
     <name>mddoclet</name>
@@ -16,7 +15,7 @@
         <developerConnection>scm:git:git@github.com:dakusui/${project.name}.git
         </developerConnection>
         <url>http://dakusui.github.io/${project.name}</url>
-        <tag>${project.name}-${project.version}</tag>
+        <tag>v1.0.11</tag>
     </scm>
 
     <licenses>
@@ -384,7 +383,7 @@
                                 <toc>left</toc>
                                 <icons>font</icons>
                                 <sectanchors>true</sectanchors>
-                                <idprefix/>
+                                <idprefix />
                                 <idseparator>-</idseparator>
                             </attributes>
                         </configuration>
