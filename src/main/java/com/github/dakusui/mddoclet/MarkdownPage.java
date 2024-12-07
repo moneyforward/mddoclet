@@ -270,7 +270,8 @@ public class MarkdownPage {
   private static String simpleReturnTypeOf(ExecutableElement executableElement) {
     return executableElement.getReturnType()
                             .toString()
-                            .replaceFirst("^([a-z_]\\w+\\.)+", "");
+                            .replaceAll("^([a-z_]\\w+\\.)+", "")
+                            .replaceAll("<([a-z_]\\w+\\.)+", "<");
   }
   
   private static String methodNameOf(Element c) {
