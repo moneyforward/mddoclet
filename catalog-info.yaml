@@ -15,5 +15,6 @@ metadata:
 spec:
   type: tool
   lifecycle: experimental
-  owner: dakusui
-  dependsOn: []
+  owner: autotest-ca-dev
+  dependsOn:
+  - Component:mavenpkg
