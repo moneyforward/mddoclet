@@ -56,7 +56,12 @@ public class MarkdownPage {
   }
   
   public MarkdownPage title(ElementKind kind, String name) {
-    this.title = String.format("%s: `%s`", kind, name);
+    String typeName = name.replaceFirst("([a-z]\\w+\\.)+", "");
+    String containerName = name.substring(0, name.length() - typeName.length())
+                               .replaceFirst("\\.$", "");
+    this.title = containerName.isEmpty()
+                 ? String.format("%s: `%s`", kind, typeName)
+                 : String.format("%s: `%s` (in `%s`)", kind, typeName, containerName);
     return this;
   }
   
