@@ -276,7 +276,8 @@ public class MarkdownPage {
     return executableElement.getReturnType()
                             .toString()
                             .replaceAll("^([a-z_]\\w+\\.)+", "")
-                            .replaceAll("<([a-z_]\\w+\\.)+", "<");
+                            .replaceAll("<([a-z_]\\w+\\.)+", "<")
+                            .replaceAll(",([a-z_]\\w+\\.)+", ",");
   }
   
   private static String methodNameOf(Element c) {
